@@ -31,5 +31,7 @@ export default __t.row({
   upset: __t.bool(),
   card: __t.string(),
   cardText: __t.string().name("card_text"),
+  claude: __t.bool(),
+  seenTrade: __t.u64().name("seen_trade"),
   createdAt: __t.timestamp().name("created_at"),
 });

@@ -6,27 +6,21 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
-import BotCommentReducer from "../bot_comment_reducer";
-import BotFillOptionsReducer from "../bot_fill_options_reducer";
-import BotRegisterReducer from "../bot_register_reducer";
-import BotSetRulesReducer from "../bot_set_rules_reducer";
 import BuyReducer from "../buy_reducer";
 import ClearTapsReducer from "../clear_taps_reducer";
 import CreateRoomReducer from "../create_room_reducer";
 import JoinRoomReducer from "../join_room_reducer";
+import SetClaudeReducer from "../set_claude_reducer";
 import SetEntryReducer from "../set_entry_reducer";
 import SkipReducer from "../skip_reducer";
 import StartGameReducer from "../start_game_reducer";
 import TapReducer from "../tap_reducer";
 
-export type BotCommentParams = __Infer<typeof BotCommentReducer>;
-export type BotFillOptionsParams = __Infer<typeof BotFillOptionsReducer>;
-export type BotRegisterParams = __Infer<typeof BotRegisterReducer>;
-export type BotSetRulesParams = __Infer<typeof BotSetRulesReducer>;
 export type BuyParams = __Infer<typeof BuyReducer>;
 export type ClearTapsParams = __Infer<typeof ClearTapsReducer>;
 export type CreateRoomParams = __Infer<typeof CreateRoomReducer>;
 export type JoinRoomParams = __Infer<typeof JoinRoomReducer>;
+export type SetClaudeParams = __Infer<typeof SetClaudeReducer>;
 export type SetEntryParams = __Infer<typeof SetEntryReducer>;
 export type SkipParams = __Infer<typeof SkipReducer>;
 export type StartGameParams = __Infer<typeof StartGameReducer>;

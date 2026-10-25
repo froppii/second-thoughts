@@ -10,12 +10,16 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export const Bot = __t.object("Bot", {
-  id: __t.u32(),
-  identity: __t.identity(),
-  key: __t.string(),
+export const ClaudeJob = __t.object("ClaudeJob", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  room: __t.string(),
+  kind: __t.string(),
+  system: __t.string(),
+  user: __t.string(),
+  maxTokens: __t.u32(),
 });
-export type Bot = __Infer<typeof Bot>;
+export type ClaudeJob = __Infer<typeof ClaudeJob>;
 
 export const Clock = __t.object("Clock", {
   scheduledId: __t.u64(),
@@ -92,9 +96,19 @@ export const Room = __t.object("Room", {
   upset: __t.bool(),
   card: __t.string(),
   cardText: __t.string(),
+  claude: __t.bool(),
+  seenTrade: __t.u64(),
   createdAt: __t.timestamp(),
 });
 export type Room = __Infer<typeof Room>;
+
+export const Secret = __t.object("Secret", {
+  id: __t.u32(),
+  owner: __t.identity(),
+  apiKey: __t.string(),
+  model: __t.string(),
+});
+export type Secret = __Infer<typeof Secret>;
 
 export const Trade = __t.object("Trade", {
   id: __t.u64(),

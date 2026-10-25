@@ -2,7 +2,7 @@
 // All game state comes straight from SpacetimeDB subscriptions; actions are reducer calls.
 import { DbConnection, tables } from './module_bindings/index.ts';
 
-const CFG = window.STDB || { uri: `ws://${location.hostname}:3000`, db: 'second-thoughts' };
+const CFG = window.STDB || { uri: `ws://${location.hostname}:3000`, db: 'second-thoughts' }; // set by public/config.js
 const $ = id => document.getElementById(id), app = $('app');
 const HL = ['var(--h1)', 'var(--h2)', 'var(--h3)', 'var(--h4)', 'var(--h5)', 'var(--h6)'];
 const HLHEX = ['#ffd84d', '#8fd3ff', '#ff9e9e', '#9becc0', '#cdb3ff', '#ffc58f'];
@@ -84,7 +84,11 @@ const tail = `<svg width="22" height="20" viewBox="0 0 22 20"><path d="M3 0 C5 9
 const blob = (p, say, cls = '', pos = '') => `<div class="pl ${cls}" style="${pos}">${say != null ? `<div class="bubble sketch"><span>${esc(say)}</span>${tail}</div>` : ''}<div class="sq"><i class="eye"><b></b></i><i class="eye"><b></b></i></div><div class="nm">${esc(p.name)}</div></div>`;
 const sticky = (label, text) => `<div class="sticky"><b>${esc(label)}</b>${esc(text)}</div>`;
 const fuse = () => `<div class="fuse" id="fuse"><i></i></div>`;
-const roomTag = (S, qr = false) => `<div class="room">${qr ? '<div class="qr sketch" id="qr" title="scan to join"></div>' : ''}<b>${esc(S.code)}</b><span>room code</span><small>${qr ? 'scan, or go to ' : 'join at '}${esc(location.host)}</small></div>`;
+const roomTag = (S, qr = false) => `<div class="room">${qr ? '<div class="qr sketch" id="qr" title="scan to join"></div>' : ''}<b>${esc(S.code)}</b><span>room code</span><small>${qr ? 'scan, or go to ' : 'join at '}<span id="joinat">${esc(joinHost)}</span></small></div>`;
+// phones can't reach "localhost", so if the host screen is open on localhost, ask the server for the laptop's Wi-Fi address
+let joinHost = location.host;
+const isLoopback = /^(localhost|127\.)/.test(location.hostname);
+if (isLoopback) fetch('/lan.json').then(r => r.json()).then(({ ip, port }) => { if (ip) { joinHost = `${ip}:${port}`; key = ''; paint(); } }).catch(() => {});
 const field = (id, label, max, val = '') => `<label class="field"><span>${label}</span><input id="${id}" maxlength="${max}" autocomplete="off" autocapitalize="${id === 'code' ? 'characters' : 'off'}" spellcheck="false" value="${esc(val)}"><i class="rough-line"></i></label>`;
 const form = (inner, action) => `<form class="stack" onsubmit="event.preventDefault();${action}">${inner}${err ? `<p class="err">${esc(err)}</p>` : ''}<button class="link next" ${busy ? 'disabled' : ''}>next <span>↩</span></button></form>`;
 const split = (active, right) => `<main class="split"><section class="left">${title()}<nav><button class="link ${active === 'join' ? 'on' : ''}" onclick="go('join')">join room</button><button class="link ${active === 'create' ? 'on' : ''}" onclick="go('create')">create room</button></nav></section><div class="divider"></div><section class="right">${right}</section></main>`;
@@ -259,7 +263,7 @@ function host(S) {
     build: () => `<main class="screen">${title('mid')}<p class="prompt" style="margin-top:34px">${esc(S.question)}</p>
       ${P.length ? crowd(P, p => p.entry || '...', p => (p.entry ? '' : 'wait ') + (p.online ? '' : 'off')) : `<p class="mute" style="margin:70px 0">waiting for people to join...</p>`}
       ${ph === 'filling' ? '<p class="mute">not enough entries. claude is adding a few...</p>' : P.length ? btn('start', 'start()') : ''}${roomTag(S, true)}</main>`,
-    after: () => { if (window.QRCode && $('qr')) new QRCode($('qr'), { text: `${location.origin}/?code=${S.code}`, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M }); },
+    after: () => { if (window.QRCode && $('qr')) new QRCode($('qr'), { text: `${location.protocol}//${joinHost}/?code=${S.code}`, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M }); },
   };
   if (ph === 'vote1' || ph === 'vote2') {
     const take = ph === 'vote1' ? S.latest('take') : S.feed[0];
@@ -307,7 +311,7 @@ function host(S) {
     k: 'h-res' + !!rep,
     build: () => `<main class="screen"><p class="mute" style="margin:0">at the closing bell</p><h1 class="title win">${esc(S.options[R.winner])}</h1>
       <p style="margin:0 0 22px">${R.upset ? '<span class="dn">upset!</span> the underdog took it at the bell.' : '<span class="up">the favorite</span> held on at the bell.'} <span class="mute">chaos card: ${esc(R.card)}</span></p>
-      ${rep ? sticky('analyst report · claude', rep) : '<p class="mute">claude is writing the report...</p>'}
+      ${rep ? sticky('analyst report · claude', rep) : R.claude ? '<p class="mute">claude is writing the report...</p>' : ''}
       <div class="chartbox sketch">${chart(S, S.path, { marks: bellMarks(S), w: 1100, h: 340 })}</div>
       <div class="cols">
         <section class="box sketch"><h3>confidence</h3><p class="mute" style="margin:0 0 6px;font-size:18px">round 1 → round 2 (at the bell)</p>${S.options.map((o, i) => `<div><span>${esc(o)}</span><span>${pc(R.s1[i])} → ${pc(R.s2[i])} <span class="mute">(${pc(R.final[i])})</span></span></div>`).join('')}</section>

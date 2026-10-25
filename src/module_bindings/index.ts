@@ -34,14 +34,11 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
-import BotCommentReducer from "./bot_comment_reducer";
-import BotFillOptionsReducer from "./bot_fill_options_reducer";
-import BotRegisterReducer from "./bot_register_reducer";
-import BotSetRulesReducer from "./bot_set_rules_reducer";
 import BuyReducer from "./buy_reducer";
 import ClearTapsReducer from "./clear_taps_reducer";
 import CreateRoomReducer from "./create_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
+import SetClaudeReducer from "./set_claude_reducer";
 import SetEntryReducer from "./set_entry_reducer";
 import SkipReducer from "./skip_reducer";
 import StartGameReducer from "./start_game_reducer";
@@ -150,14 +147,11 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
-  __reducerSchema("bot_comment", BotCommentReducer),
-  __reducerSchema("bot_fill_options", BotFillOptionsReducer),
-  __reducerSchema("bot_register", BotRegisterReducer),
-  __reducerSchema("bot_set_rules", BotSetRulesReducer),
   __reducerSchema("buy", BuyReducer),
   __reducerSchema("clear_taps", ClearTapsReducer),
   __reducerSchema("create_room", CreateRoomReducer),
   __reducerSchema("join_room", JoinRoomReducer),
+  __reducerSchema("set_claude", SetClaudeReducer),
   __reducerSchema("set_entry", SetEntryReducer),
   __reducerSchema("skip", SkipReducer),
   __reducerSchema("start_game", StartGameReducer),
