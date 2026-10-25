@@ -1,7 +1,18 @@
 {
   "name": "second-thoughts",
-  "version": "0.2.0",
-  "engines": { "node": ">=18" },
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "express": "^4.19.2", "ws": "^8.18.0" }
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "setup": "npm --prefix spacetimedb install && npm run publish:local && npm run generate && npm run build",
+    "publish:local": "spacetime publish --module-path spacetimedb --server local second-thoughts --yes",
+    "publish:cloud": "spacetime publish --module-path spacetimedb --server maincloud second-thoughts",
+    "generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb",
+    "build": "esbuild src/client.js --bundle --format=esm --minify --outfile=public/app.js && esbuild src/server.js --bundle --platform=node --format=esm --packages=external --outfile=dist/server.mjs",
+    "start": "node dist/server.mjs",
+    "dev": "npm run build && npm start"
+  },
+  "dependencies": { "express": "^4.19.2", "spacetimedb": "2.13.*" },
+  "devDependencies": { "esbuild": "^0.24.0" }
 }
