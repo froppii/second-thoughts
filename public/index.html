@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>second thoughts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#fff;--ink:#111;--gray:#d9d9d9;--mute:#6f6f6f;--note:#fff3a6;--up:#1f8f4e;--dn:#d23b3b;
+  --h1:#ffd84d;--h2:#8fd3ff;--h3:#ff9e9e;--h4:#9becc0;--h5:#cdb3ff;--h6:#ffc58f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink)}
+body{font:700 26px/1.25 'Gaegu','Comic Sans MS',cursive;min-height:100vh;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:disabled{opacity:.35;cursor:default}
+:focus-visible{outline:2.5px dashed var(--ink);outline-offset:6px}
+.mute{color:var(--mute);font-weight:400}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.err{color:var(--dn);font-size:22px;margin:0}
+
+/* the hand-drawn bits: thin shapes pushed through an SVG noise filter */
+.rough-line{display:block;height:2.5px;background:var(--ink);filter:url(#roughH)}
+.divider{width:3px;align-self:stretch;margin:4vh 0;background:var(--ink);filter:url(#roughV)}
+.sketch{position:relative}
+.sketch::before{content:'';position:absolute;inset:0;border:2.5px solid var(--ink);border-radius:16px 6px 14px 5px/6px 14px 5px 16px;filter:url(#rough);pointer-events:none}
+
+.title{font-family:'Freckle Face','Gaegu',cursive;font-weight:400;line-height:.8;margin:0;font-size:clamp(72px,9.5vw,132px);letter-spacing:-.01em}
+.title span{display:block}.title span+span{padding-left:.82em}
+.title.mid{font-size:clamp(60px,8vw,112px)}.title.sm{font-size:56px}.title.xs{font-size:38px}
+
+.link{font-size:34px;font-weight:400;padding:2px 4px;text-underline-offset:7px;text-decoration-thickness:2px}
+.link:hover,.link.on{text-decoration:underline}
+.next{font-size:34px;font-weight:400;margin-top:18px}.next span{font-size:.9em}
+nav{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:34px}
+
+/* landing */
+.home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.brand{position:relative}
+.tag{position:absolute;left:101%;top:82%;transform:rotate(-24deg);transform-origin:0 50%;white-space:nowrap;font-size:30px;font-weight:400;margin:0}
+
+/* join / create split */
+.split{min-height:100vh;display:grid;grid-template-columns:1fr auto 1fr;padding:0 4vw}
+.split>section{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px}
+.stack{display:flex;flex-direction:column;align-items:center;width:min(470px,100%);gap:30px}
+.field{display:block;width:100%;text-align:center;font-size:34px;font-weight:400}
+.field input{display:block;width:100%;border:0;background:transparent;font:700 34px 'Gaegu',cursive;text-align:center;padding:6px 0 2px;color:var(--ink);outline:none}
+.field input::placeholder{color:#bbb}
+.field:focus-within .rough-line{height:4px}
+.prompt{font-size:32px;font-weight:400;text-align:center;margin:10px 0}
+.prompt.ask{margin:0 0 -10px}
+
+/* players: gray squares with googly eyes */
+.crowd{position:relative;width:min(980px,100%);margin:0 auto}
+.pl{position:absolute;width:96px;text-align:center}
+.sq{width:96px;height:96px;background:var(--gray);display:flex;gap:2px;padding:24px 0 0 0;justify-content:center;align-items:flex-start}
+.eye{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff 50%,#e8e8e8 100%);box-shadow:inset 0 0 0 2px #cfcfcf,0 1.5px 2px rgba(0,0,0,.3);display:grid;place-items:center}
+.eye b{width:21px;height:21px;border-radius:50%;background:var(--ink);transition:transform .18s ease-out}
+.pl .nm{font-size:28px;font-weight:400;margin-top:2px;white-space:nowrap}
+.bubble{position:absolute;bottom:calc(100% + 16px);left:48px;z-index:2;background:var(--paper);padding:4px 16px;font-size:26px;font-weight:400;white-space:nowrap;max-width:300px;overflow:visible}
+.bubble>span{display:block;overflow:hidden;text-overflow:ellipsis}
+.bubble::before{border-radius:40px 30px 36px 32px/30px 40px 28px 38px}
+.bubble svg{position:absolute;left:10px;top:calc(100% - 3px)}
+.pl.r .bubble{left:auto;right:48px}.pl.r .bubble svg{left:auto;right:10px;transform:scaleX(-1)}
+.pl.wait .bubble{color:var(--mute)}
+.solo{display:flex;justify-content:center;padding-top:90px}.solo .pl{position:relative}
+.solo .bubble{left:50%;transform:translateX(-50%);white-space:normal;width:max-content;max-width:min(300px,80vw);text-align:center}.solo .bubble svg{left:calc(50% - 26px)}
+
+/* host chrome */
+.room{position:fixed;right:28px;bottom:18px;text-align:right;line-height:.85}
+.room b{display:block;font:400 76px 'Freckle Face','Gaegu',cursive;letter-spacing:.02em}
+.room span{display:block;font-size:32px;font-weight:400}
+.room small{display:block;font-size:20px;color:var(--mute);font-weight:400;margin-top:6px}
+.room .qr{display:inline-block;padding:8px;background:#fff;margin-bottom:10px}.room .qr img,.room .qr canvas{display:block;width:120px;height:120px}
+.screen{min-height:100vh;padding:40px 24px 140px;display:flex;flex-direction:column;align-items:center}
+.topbar{display:flex;align-items:center;gap:28px;width:min(1200px,100%)}
+.topbar .prompt{text-align:left;margin:0}
+.big{font:400 64px 'Freckle Face','Gaegu',cursive;margin:12px 0}
+.sticky{background:var(--note);padding:16px 22px;transform:rotate(-1.4deg);box-shadow:0 8px 18px rgba(0,0,0,.12);font-weight:400;font-size:25px;text-align:left;max-width:560px}
+.sticky b{display:block;font-weight:700;font-size:22px;margin-bottom:4px}
+
+/* market */
+.mk{display:grid;grid-template-columns:1.7fr 1fr;gap:48px;width:min(1200px,100%);margin-top:30px;align-items:start}
+.row{display:grid;grid-template-columns:200px 1fr 110px;gap:16px;align-items:center;margin:16px 0}
+.row .nm{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:46px}.track>div{position:absolute;inset:5px;overflow:hidden;border-radius:10px 4px 9px 4px}
+.track i{display:block;height:100%;transition:width .45s ease}
+.px{font-size:30px}
+.pitch{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin-bottom:34px}
+.pitch .solo{padding-top:96px}
+.timer{font:400 56px 'Freckle Face','Gaegu',cursive}
+
+/* phone screens */
+.phone{max-width:520px;margin:0 auto;padding:24px 18px 60px;display:flex;flex-direction:column;gap:14px}
+.phone h2{font-size:34px;margin:6px 0 0}
+.slider .top{display:flex;justify-content:space-between;gap:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-moz-range-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);margin-top:-13px}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
+.buy{display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left;padding:14px 18px;width:100%}
+.buy .bp{font-size:34px}.buy .bs{grid-column:1/-1;font-size:20px;font-weight:400;color:var(--mute)}
+.buy .sw{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:8px;vertical-align:1px}
+.buy:active:not(:disabled){transform:scale(.98)}
+
+/* spin + results */
+canvas{width:min(520px,62vh,86vw);height:auto}
+.spin{display:flex;gap:48px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:16px}.spin aside{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:320px}
+.win{font-size:clamp(56px,8vw,110px);text-align:center;line-height:.95;margin:6px 0 10px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;width:min(1200px,100%);margin-top:34px}
+.box{padding:18px 22px;font-size:23px;font-weight:400}
+.box h3{margin:0 0 8px;font-size:28px}
+.box div{display:flex;justify-content:space-between;gap:10px}
+
+@media (max-width:760px){
+  body{font-size:24px}
+  .split{grid-template-columns:1fr;padding:0;align-content:start}
+  .split .divider{display:none}
+  .split>section{padding:28px 18px 8px}
+  .split .left .title{font-size:64px}
+  .split nav{flex-direction:row;gap:22px;margin-top:20px}.split .link{font-size:28px}
+  .tag{font-size:22px;left:62%;top:96%}
+  .mk,.cols{grid-template-columns:1fr}
+  .row{grid-template-columns:110px 1fr 70px}
+  .room{position:static;text-align:center;margin-top:30px}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>
+  <filter id="roughH" x="-2%" y="-300%" width="104%" height="700%"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.5"/></filter>
+  <filter id="roughV" x="-300%" y="-2%" width="700%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.5"/></filter>
+</svg>
+<div id="app"></div>
+
+<script>
+const $ = id => document.getElementById(id), app = $('app');
+const HL = ['var(--h1)', 'var(--h2)', 'var(--h3)', 'var(--h4)', 'var(--h5)', 'var(--h6)'];
+const HLHEX = ['#ffd84d', '#8fd3ff', '#ff9e9e', '#9becc0', '#cdb3ff', '#ffc58f'];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hash = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const store = { get() { try { return JSON.parse(sessionStorage.getItem('st')); } catch { return null; } }, set(v) { try { v ? sessionStorage.setItem('st', JSON.stringify(v)) : sessionStorage.removeItem('st'); } catch {} } };
+
+// a join link (from the lobby QR) fills in the room code for you
+const linkCode = (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+if (linkCode) history.replaceState(null, '', location.pathname);
+let S = null, me = null, role = null, screen = linkCode ? 'join' : 'home', err = '', key = '', spun = false, myConf = null;
+
+// ---------- connection ----------
+const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+const send = m => ws.readyState === 1 ? ws.send(JSON.stringify(m)) : ws.addEventListener('open', () => ws.send(JSON.stringify(m)), { once: true });
+ws.onopen = () => {
+  const s = store.get();
+  if (s && s.role === 'host') { role = 'host'; send({ type: 'rehost', code: s.code, key: s.key }); }
+  else if (s && s.role === 'player') send({ type: 'rejoin', code: s.code, id: s.id });
+};
+ws.onmessage = e => {
+  const m = JSON.parse(e.data);
+  if (m.type === 'state') S = m.state;
+  else if (m.type === 'hosting') { role = 'host'; store.set({ role: 'host', code: m.code, key: m.key }); }
+  else if (m.type === 'joined') { role = 'player'; me = m.id; screen = 'entry'; store.set({ role: 'player', code: m.code, id: m.id }); }
+  else if (m.type === 'error') { if (!m.msg) { store.set(null); role = null; S = null; } err = m.msg || ''; key = ''; }
+  render();
+};
+ws.onclose = () => { err = 'lost connection. refresh to hop back in.'; key = ''; render(); };
+
+// ---------- little builders ----------
+const title = (size = '') => `<h1 class="title ${size}"><span>second</span><span>thoughts</span></h1>`;
+const nextBtn = (label, js) => `<button class="link next" onclick="${js}">${label} <span>↩</span></button>`;
+const tail = `<svg width="22" height="20" viewBox="0 0 22 20"><path d="M3 0 C5 9 3 15 1 19 C8 15 14 8 18 0" fill="#fff" stroke="#111" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+const blob = (p, say, cls = '', pos = '') => `<div class="pl ${cls}" style="${pos}">${say != null ? `<div class="bubble sketch"><span>${esc(say)}</span>${tail}</div>` : ''}<div class="sq"><i class="eye"><b></b></i><i class="eye"><b></b></i></div><div class="nm">${esc(p.name)}</div></div>`;
+const sticky = (label, text) => `<div class="sticky"><b>${esc(label)}</b>${esc(text)}</div>`;
+const joinUrl = () => `${location.origin}/?code=${S.code}`;
+const roomTag = (qr = false) => `<div class="room">${qr ? '<div class="qr sketch" id="qr" title="scan to join"></div>' : ''}<b>${esc(S.code)}</b><span>room code</span><small>${qr ? 'scan, or go to ' : 'join at '}${esc(location.host)}</small></div>`;
+const field = (id, label, max, val = '') => `<label class="field"><span>${label}</span><input id="${id}" maxlength="${max}" autocomplete="off" autocapitalize="${id === 'code' ? 'characters' : 'off'}" spellcheck="false" value="${esc(val)}"><i class="rough-line"></i></label>`;
+const form = (inner, action) => `<form class="stack" onsubmit="event.preventDefault();${action}">${inner}${err ? `<p class="err">${esc(err)}</p>` : ''}<button class="link next">next <span>↩</span></button></form>`;
+const split = (active, right) => `<main class="split"><section class="left">${title()}<nav><button class="link ${active === 'join' ? 'on' : ''}" onclick="go('join')">join room</button><button class="link ${active === 'create' ? 'on' : ''}" onclick="go('create')">create room</button></nav></section><div class="divider"></div><section class="right">${right}</section></main>`;
+
+// players scattered like the wireframe: loose grid, jittered by id so nobody jumps around
+function crowd(players, say, cls = () => '') {
+  const cols = Math.min(6, Math.max(3, players.length)), rows = Math.ceil(players.length / cols) || 1;
+  const html = players.map((p, i) => {
+    const h = hash(p.id), c = i % cols, r = Math.floor(i / cols);
+    const x = (c + 0.15 + (h % 50) / 100) / cols * 100, y = 70 + r * 190 + (h >> 6) % 70;
+    return blob(p, say(p), (c >= cols / 2 ? 'r ' : '') + cls(p), `left:calc(${x}% - 48px);top:${y}px`);
+  }).join('');
+  return `<div class="crowd" style="height:${rows * 190 + 110}px">${html}</div>`;
+}
+
+// googly eyes follow the pointer, and drift on their own when nobody's moving it
+let mx = innerWidth / 2, my = innerHeight / 3, moved = 0;
+function look() {
+  document.querySelectorAll('.eye').forEach(e => {
+    const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const a = Math.atan2(my - cy, mx - cx), d = Math.min(r.width * 0.2, Math.hypot(mx - cx, my - cy) / 18);
+    e.firstChild.style.transform = `translate(${Math.cos(a) * d}px,${Math.sin(a) * d}px)`;
+  });
+}
+addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; moved = Date.now(); look(); });
+setInterval(() => { if (Date.now() - moved > 3000) { mx = Math.random() * innerWidth; my = Math.random() * innerHeight; look(); } }, 1800);
+
+// ---------- actions ----------
+function go(s) { screen = s; err = ''; render(); }
+function joinRoom() {
+  const code = $('code').value.trim().toUpperCase(), name = $('name').value.trim();
+  if (code.length !== 4) { err = 'room codes are 4 letters'; key = ''; render(); return $('code').focus(); }
+  if (!name) { err = 'what should we call you?'; key = ''; render(); return $('name').focus(); }
+  err = ''; send({ type: 'join', code, name });
+}
+function createRoom() {
+  const question = $('q').value.trim();
+  if (!question) { err = 'type the decision, even a vague one'; key = ''; render(); return $('q').focus(); }
+  err = ''; role = 'host'; send({ type: 'create', question });
+}
+function submitEntry() {
+  const text = $('entry').value.trim();
+  if (!text) { err = 'type something. anything.'; key = ''; render(); return $('entry').focus(); }
+  err = ''; send({ type: 'entry', text }); screen = 'waiting'; render();
+}
+function pcts() {
+  const t = myConf.reduce((a, b) => a + b, 0);
+  myConf.forEach((v, i) => $('pct' + i).textContent = Math.round(t ? v / t * 100 : 100 / myConf.length) + '%');
+}
+const lockIn = () => send({ type: 'vote', conf: myConf });
+const restart = () => { store.set(null); location.reload(); };
+
+// ---------- screens ----------
+// each view returns a key; the page is rebuilt only when the key changes, otherwise update() patches numbers in place
+function local() {
+  if (screen === 'home') return { k: 'home', build: () => `<main class="home"><div class="brand">${title()}<p class="tag">i cant make decisions :(</p></div><nav><button class="link" onclick="go('join')">join room</button><button class="link" onclick="go('create')">create room</button></nav></main>` };
+  if (screen === 'join') return { k: 'join' + err, build: () => split('join', form(field('code', 'room code', 4, linkCode) + field('name', 'name', 12), 'joinRoom()')) };
+  return { k: 'create' + err, build: () => split('create', form(field('q', 'what are you trying to do?', 80), 'createRoom()')) };
+}
+
+function player() {
+  const P = S.players.find(p => p.id === me), ph = S.phase;
+  if (!P) return local();
+  if (ph === 'lobby') {
+    if (screen !== 'waiting') return { k: 'p-entry' + err, build: () => split('join', form(`<p class="prompt ask">“${esc(S.question)}”</p>` + field('entry', 'insert your entry', 30, P.entry), 'submitEntry()')) };
+    return { k: 'p-wait' + P.entry + S.note, build: () => `<main class="phone" style="align-items:center;text-align:center">${title('sm')}<p class="prompt">“${esc(S.question)}”</p><div class="solo">${blob(P, P.entry || '...')}</div><p class="mute">you're in. eyes on the big screen.</p>${S.note ? `<p class="mute">${esc(S.note)}</p>` : ''}<button class="link" onclick="go('entry')">change my entry</button></main>` };
+  }
+  if (ph === 'vote1' || ph === 'vote2') return {
+    k: 'p-' + ph,
+    build: () => {
+      if (!myConf || myConf.length !== S.options.length) myConf = S.options.map(() => 50);
+      return `<main class="phone">${title('xs')}<h2>${ph === 'vote1' ? 'round 1: gut call' : 'round 2: second thoughts'}</h2><p class="mute" style="margin:0">how sure are you about each one?</p>
+        ${S.options.map((o, i) => `<div class="slider"><div class="top"><span>${esc(o)}</span><span id="pct${i}"></span></div><input type="range" min="0" max="100" value="${myConf[i]}" aria-label="${esc(o)}" oninput="myConf[${i}]=+this.value;pcts()"></div>`).join('')}
+        ${nextBtn('lock in', 'lockIn()')}<p id="locked" class="mute" style="margin:0"></p></main>`;
+    },
+    after: pcts,
+    update: () => $('locked').textContent = P.voted ? 'locked in. you can still change it until voting closes.' : '',
+  };
+  if (ph === 'market') {
+    const cur = S.pitches[S.slot], mine = cur && cur.id === me;
+    return {
+      k: 'p-market' + S.slot,
+      build: () => `<main class="phone">${title('xs')}<h2>the market is open</h2><p style="margin:0">you have <b id="chips"></b> chips</p>
+        ${mine ? `<div class="sticky"><b>your turn! pitch it out loud</b>sell <u>${esc(S.options[cur.option])}</u> to the room.<br>handicap: ${esc(cur.rule)}<div class="timer" id="st"></div></div>` : cur ? `<p class="mute" style="margin:0">${esc(cur.name)} is pitching ${esc(S.options[cur.option])}</p>` : ''}
+        ${S.options.map((o, i) => `<button class="buy sketch" id="b${i}" onclick="send({type:'buy',option:${i}})"><span><i class="sw" style="background:${HL[i % 6]}"></i>${esc(o)}</span><span class="bp" id="bp${i}"></span><span class="bs" id="bs${i}"></span></button>`).join('')}
+        <p class="mute" style="font-size:20px">each tap spends 10 chips. every share pays 1 chip if its option wins the spin.</p></main>`,
+      update: () => {
+        $('chips').textContent = P.chips;
+        S.options.forEach((o, i) => {
+          $('bp' + i).textContent = Math.round(S.prices[i] * 100) + '¢';
+          $('bs' + i).textContent = P.shares[i] > 0 ? `you hold ${P.shares[i].toFixed(1)} shares · tap to buy more` : 'tap to buy';
+          $('b' + i).disabled = P.chips < 10;
+        });
+        if (mine) $('st').textContent = S.slotLeft + 's';
+      },
+    };
+  }
+  if (ph === 'spin') return { k: 'p-spin', build: () => `<main class="phone" style="align-items:center;text-align:center">${title('sm')}<div class="solo">${blob(P, 'spinning...')}</div><p class="prompt">eyes on the big screen</p></main>` };
+  const R = S.result, mine = R.board.findIndex(b => b.id === me), net = mine >= 0 ? R.board[mine].net : 0;
+  return { k: 'p-res' + !!S.comment2, build: () => `<main class="phone" style="align-items:center;text-align:center"><p class="mute" style="margin:0">the wheel says</p><h1 class="title win" style="font-size:56px">${esc(S.options[R.winner])}</h1>
+    <p class="big ${net >= 0 ? 'up' : 'dn'}" style="margin:0">${net >= 0 ? '+' : ''}${net} chips</p><p style="margin:0">#${mine + 1} of ${R.board.length} traders</p>
+    ${S.comment2 ? sticky('analyst report · claude', S.comment2) : ''}${nextBtn('done', 'restart()')}</main>` };
+}
+
+function host() {
+  const ph = S.phase, P = S.players;
+  if (ph === 'lobby') return {
+    k: 'h-lobby' + JSON.stringify(P.map(p => [p.id, p.entry])) + S.note,
+    build: () => `<main class="screen">${title('mid')}<p class="prompt" style="margin-top:34px">${esc(S.question)}</p>
+      ${P.length ? crowd(P, p => p.entry || '...', p => p.entry ? '' : 'wait') : `<p class="mute" style="margin:70px 0">waiting for people to join...</p>`}
+      ${S.note ? `<p class="mute">${esc(S.note)}</p>` : P.length ? nextBtn('start', "send({type:'next'})") : ''}${roomTag(true)}</main>`,
+    after: () => { if (window.QRCode && $('qr')) new QRCode($('qr'), { text: joinUrl(), width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M }); },
+  };
+  if (ph === 'vote1' || ph === 'vote2') return {
+    k: 'h-' + ph + P.map(p => +p.voted).join(''),
+    build: () => `<main class="screen"><div class="topbar">${title('xs')}<p class="prompt">${esc(S.question)}</p></div>
+      <p class="big">${ph === 'vote1' ? 'round 1: gut call' : 'round 2: second thoughts'}</p><p class="mute" style="margin:0">${ph === 'vote1' ? 'set your sliders before anyone talks you out of it' : 'heard the pitches? move your sliders.'}</p>
+      ${crowd(P, p => p.voted ? 'locked in ✓' : '...', p => p.voted ? '' : 'wait')}
+      <p style="margin:0">${P.filter(p => p.voted).length}/${P.length} locked in</p>${nextBtn('close voting', "send({type:'next'})")}${roomTag()}</main>`,
+  };
+  if (ph === 'market') {
+    const cur = S.pitches[S.slot], who = cur && (P.find(p => p.id === cur.id) || cur);
+    return {
+      k: 'h-market' + S.slot + !!S.comment1,
+      build: () => `<main class="screen"><div class="topbar">${title('xs')}<div><p class="prompt">${esc(S.question)}</p><p class="mute" style="margin:0">market closes in <b id="left"></b>s · buy on your phone</p></div></div>
+        <div class="mk"><div>${S.options.map((o, i) => `<div class="row"><div class="nm">${esc(o)}</div><div class="track sketch"><div><i id="f${i}" style="background:${HL[i % 6]}"></i></div></div><div class="px"><span id="p${i}"></span> <span id="d${i}"></span></div></div>`).join('')}</div>
+        <aside>${cur ? `<div class="pitch"><span class="mute">now pitching</span><div class="solo">${blob(who, cur.rule)}</div><p style="margin:0">selling <span style="background:${HL[cur.option % 6]};padding:0 6px">${esc(S.options[cur.option])}</span></p><div class="timer" id="slot"></div></div>` : ''}
+        ${S.comment1 ? sticky('opening bell · claude', S.comment1) : ''}</aside></div>${nextBtn('go to round 2', "send({type:'next'})")}${roomTag()}</main>`,
+      update: () => {
+        $('left').textContent = S.left;
+        const n = S.options.length;
+        S.options.forEach((o, i) => {
+          const p = S.prices[i], d = p - 1 / n, e = $('d' + i);
+          $('f' + i).style.width = p * 100 + '%'; $('p' + i).textContent = Math.round(p * 100) + '¢';
+          e.textContent = d >= 0 ? '▲' : '▼'; e.className = d >= 0 ? 'up' : 'dn';
+        });
+        if ($('slot')) $('slot').textContent = S.slotLeft + 's';
+      },
+    };
+  }
+  if (ph === 'spin') return { k: 'h-spin', build: () => `<main class="screen"><div class="topbar">${title('xs')}<p class="prompt">${esc(S.question)}</p></div><div class="spin"><canvas id="c" width="1080" height="1080"></canvas><aside>${sticky('chaos card: ' + S.result.card.name, S.result.card.text)}<div id="done" style="text-align:center"></div></aside></div></main>`, after: wheel };
+  const R = S.result, pc = x => Math.round(x * 100) + '%';
+  return {
+    k: 'h-res' + !!S.comment2,
+    build: () => `<main class="screen"><p class="mute" style="margin:0">the wheel says</p><h1 class="title win">${esc(S.options[R.winner])}</h1>
+      <p style="margin:0 0 22px">${R.upset ? '<span class="dn">upset!</span> the underdog won the spin.' : '<span class="up">the favorite</span> won the spin.'} <span class="mute">chaos card: ${esc(R.card.name)}</span></p>
+      ${S.comment2 ? sticky('analyst report · claude', S.comment2) : S.pending ? '<p class="mute">claude is writing the report...</p>' : ''}
+      <div class="cols">
+        <section class="box sketch"><h3>confidence</h3><p class="mute" style="margin:0 0 6px;font-size:18px">round 1 → round 2 (final wheel)</p>${S.options.map((o, i) => `<div><span>${esc(o)}</span><span>${pc(R.s1[i])} → ${pc(R.s2[i])} <span class="mute">(${pc(R.w[i])})</span></span></div>`).join('')}</section>
+        <section class="box sketch"><h3>persuasion</h3>${R.persuasion.map(p => `<div><span>${esc(p.name)} <span class="mute">for ${esc(S.options[p.option])}</span></span><span class="${p.delta >= 0 ? 'up' : 'dn'}">${p.delta >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(p.delta * 100))}</span></div>`).join('')}</section>
+        <section class="box sketch"><h3>leaderboard</h3>${R.board.map(b => `<div><span>${esc(b.name)}</span><span class="${b.net >= 0 ? 'up' : 'dn'}">${b.net >= 0 ? '+' : ''}${b.net}</span></div>`).join('')}</section>
+      </div>${nextBtn('new decision', 'restart()')}</main>`,
+  };
+}
+
+// the wheel, drawn in the same marker style
+function wheel() {
+  if (spun) return; spun = true;
+  const R = S.result, w = R.w, cv = $('c'), x = cv.getContext('2d'), Z = cv.width / 540;
+  x.scale(Z, Z);
+  const draw = rot => {
+    x.clearRect(0, 0, 540, 540);
+    let a = rot - Math.PI / 2;
+    w.forEach((v, i) => {
+      const s = a; a += v * 2 * Math.PI;
+      x.beginPath(); x.moveTo(270, 280); x.arc(270, 280, 240, s, a); x.closePath();
+      x.fillStyle = HLHEX[i % 6]; x.fill(); x.lineWidth = 3; x.strokeStyle = '#111'; x.lineJoin = 'round'; x.stroke();
+      if (v > 0.03) {
+        x.save(); x.translate(270, 280); x.rotate((s + a) / 2);
+        x.fillStyle = '#111'; x.font = "700 26px Gaegu, 'Comic Sans MS', cursive"; x.textAlign = 'right'; x.textBaseline = 'middle';
+        const t = S.options[i]; x.fillText(t.length > 16 ? t.slice(0, 15) + '…' : t, 222, 0); x.restore();
+      }
+    });
+    x.beginPath(); x.arc(270, 280, 14, 0, 2 * Math.PI); x.fillStyle = '#fff'; x.fill(); x.stroke();
+    x.beginPath(); x.moveTo(250, 8); x.lineTo(290, 8); x.lineTo(270, 50); x.closePath(); x.fillStyle = '#111'; x.fill();
+  };
+  const center = w.slice(0, R.winner).reduce((s, v) => s + v, 0) + w[R.winner] / 2;
+  const end = 10 * Math.PI - center * 2 * Math.PI, t0 = performance.now();
+  const step = t => {
+    const k = Math.min(1, (t - t0) / 5500);
+    draw(end * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) requestAnimationFrame(step);
+    else $('done').innerHTML = `<h1 class="title win">${esc(S.options[R.winner])}</h1>${nextBtn('see the analysis', "send({type:'next'})")}`;
+  };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(step));
+}
+
+function render() {
+  const v = !S ? local() : role === 'host' ? host() : role === 'player' ? player() : local();
+  if (v.k !== key) {
+    key = v.k; app.innerHTML = v.build(); v.after && v.after();
+    const first = [...app.querySelectorAll('input:not([type=range])')].find(i => !i.value);
+    if (first && matchMedia('(pointer:fine)').matches) first.focus();
+  }
+  v.update && v.update();
+  look();
+}
+render();
+</script>
+</html>
